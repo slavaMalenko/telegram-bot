@@ -22,7 +22,7 @@ const colorHexCss = async (color) => {
             hex = list.find(res => res.name === color).hex
             return hex
         })
-        .then(c => b = c)
+        .then(c => colorHex = c)
     return await colorHex
 }
 
