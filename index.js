@@ -14,6 +14,18 @@ const startGame = async (chatId) => {
     await bot.sendMessage(chatId, 'Загадал!', gameOptions)
 }
 
+const colorHexCss = async (color) => {
+    const colorPromise = await fetch('https://api.sampleapis.com/css-color-names/colors');
+    let colorHex;
+    let colorCss = await colorPromise.json()
+        .then(list => {
+            hex = list.find(res => res.name === color).hex
+            return hex
+        })
+        .then(c => b = c)
+    return await colorHex
+}
+
 const start = () => {
     bot.setMyCommands([
         { command: '/start', description: 'Начальное приветсвие' },
