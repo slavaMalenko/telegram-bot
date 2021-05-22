@@ -16,13 +16,15 @@ const startGame = async (chatId) => {
 }
 
 const colorHexCss = async (chatId, color) => {
+    const colorReg = color.match(/[a-z]+\D+/gi)
     const colorPromise = await fetch('https://api.sampleapis.com/css-color-names/colors');
     let colorCss = await colorPromise.json()
         .then(list => {
-            hex = list.find(res => res.name === color).hex
+            hex = list.find(res => res.name === colorReg[0].toLowerCase()).hex
             if (hex) {
                 return bot.sendMessage(chatId, hex)
             }
+
         })
         .catch(error => {
             bot.sendMessage(chatId, 'К сожалению, такого цвета нет :(')
@@ -43,14 +45,19 @@ const start = () => {
         console.log(msg.text)
         if (text === '/start') {
             await bot.sendMessage(chatId, `Добро пожаловать, ${msg.from.first_name}!`)
+            await bot.sendMessage(chatId, `Написав цвет со звёздочкой, например: *green, получишь его hex код ;)`)
             return bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/997/223/99722369-026f-3dd5-909f-bcb97c9cb923/192/1.webp')
         } else if (text === '/info') {
             return bot.sendMessage(chatId, `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}`)
         } else if (text === '/game') {
             return startGame(chatId)
-        } else {
-            colorHexCss(chatId, text)
+        } else if (text.match(/\*[a-z]+\D+/gi)) {
+            return colorHexCss(chatId, text)
         }
+
+        await bot.sendMessage(chatId, `ПОВТОРЯЮ. Написав цвет со звёздочкой, например: *green, получишь его hex код ;)`)
+        await bot.sendMessage(chatId, `Я тупой бот, общаюсь командами, а команды "${text}" - нет :(`)
+        return bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/997/223/99722369-026f-3dd5-909f-bcb97c9cb923/4.webp')
     })
 
     bot.on('callback_query', async msg => {
