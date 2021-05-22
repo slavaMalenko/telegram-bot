@@ -1,5 +1,6 @@
-const TelegramApi = require('node-telegram-bot-api')
-const { gameOptions, againOptions } = require('./option')
+const TelegramApi = require('node-telegram-bot-api');
+const fetch = require("node-fetch");
+const { gameOptions, againOptions } = require('./option');
 const token = '1869775039:AAFcVBB8WSsatBYKHTRRhs6-DNdG4b271Dk';
 
 const bot = new TelegramApi(token, { polling: true });
@@ -14,16 +15,19 @@ const startGame = async (chatId) => {
     await bot.sendMessage(chatId, 'Загадал!', gameOptions)
 }
 
-const colorHexCss = async (color) => {
+const colorHexCss = async (chatId, color) => {
     const colorPromise = await fetch('https://api.sampleapis.com/css-color-names/colors');
-    let colorHex;
     let colorCss = await colorPromise.json()
         .then(list => {
             hex = list.find(res => res.name === color).hex
-            return hex
+            if (hex) {
+                return bot.sendMessage(chatId, hex)
+            }
         })
-        .then(c => colorHex = c)
-    return await colorHex
+        .catch(error => {
+            bot.sendMessage(chatId, 'К сожалению, такого цвета нет :(')
+            return bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/997/223/99722369-026f-3dd5-909f-bcb97c9cb923/4.webp')
+        })
 }
 
 const start = () => {
@@ -40,18 +44,13 @@ const start = () => {
         if (text === '/start') {
             await bot.sendMessage(chatId, `Добро пожаловать, ${msg.from.first_name}!`)
             return bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/997/223/99722369-026f-3dd5-909f-bcb97c9cb923/192/1.webp')
-        }
-
-        if (text === '/info') {
+        } else if (text === '/info') {
             return bot.sendMessage(chatId, `Тебя зовут ${msg.from.first_name} ${msg.from.last_name}`)
-        }
-
-        if (text === '/game') {
+        } else if (text === '/game') {
             return startGame(chatId)
+        } else {
+            colorHexCss(chatId, text)
         }
-
-        await bot.sendMessage(chatId, `Я такой тупой, что общаюсь только по командам, а команды ${msg.text} - нет :(`)
-        return bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/997/223/99722369-026f-3dd5-909f-bcb97c9cb923/4.webp')
     })
 
     bot.on('callback_query', async msg => {
